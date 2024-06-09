@@ -1,0 +1,1 @@
+Using this repo for all of my quant research. Nothing special gonna be found here, just a guy who likes math, coding, and the markets.
