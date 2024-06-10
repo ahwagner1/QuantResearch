@@ -3,7 +3,7 @@ from datetime import time
 import numpy as np
 
 '''
-Gonna use this for common functions that I'm too lazy to rewrite accorss the various projects
+Gonna use this for common functions that I'm too lazy to rewrite accross various projects
 '''
 
 def import_sierra_data(data_path: str = None):
@@ -32,11 +32,12 @@ def resample_data(data: pd.DataFrame, bin_size: str, features_and_methods: dict)
     '''
     
     resampled_data = data.resample(bin_size).agg(features_and_methods)
-    return resample_data
+    return resampled_data
 
-def rth_triple_barrier_classifying(data: pd.DataFrame, lookahead: int, threshold: float, zero_or_sign: str = 'zero', eod_timestamp: time = time(11,44,00)):
+#TODO: REWRITE TO ACCEPT VARIABLE UPPER AND LOWER THRESHOLD AMOUNTS INSTEAD OF FIXED 1:1
+def rth_threshold_barrier_classifying(data: pd.DataFrame, lookahead: int, threshold: float, zero_or_sign: str = 'zero', eod_timestamp: time = time(11,44,00)):
     '''
-    As the name suggests this function will iterate through RTH price data and determine the sign of direction based on triple barrier method
+    As the name suggests this function will iterate through RTH price data and determine the sign of direction based on close to close price, lookahead bars in the future
     If the lookahead is past the end of the current day, the EOD of price will be used
 
     Since theres a 99% chance I use this with sierra data, the closing price columns name is assumed to be 'Last'
@@ -49,7 +50,6 @@ def rth_triple_barrier_classifying(data: pd.DataFrame, lookahead: int, threshold
                     'zero' assigns 0 to the label
                     'sign' assigns the directional sign (-1, 1) 
 
-    TODO: REWRITE TO ACCEPT VARIABLE UPPER AND LOWER THRESHOLD AMOUNTS INSTEAD OF FIXED 1:1
     '''
     
     if (zero_or_sign not in ['zero', 'sign']):
@@ -80,8 +80,21 @@ def rth_triple_barrier_classifying(data: pd.DataFrame, lookahead: int, threshold
                 y[i] = 0 # in case of edge case
         
     if zero_or_sign == 'zero':
-        y = np.where(y > threshold, 1, np.where(y < threshold, -1, 0))
-    else:
-        # signed labeling, add this
-        pass
+        # vertcal barriers result in 0 label (meaning no change in price)
+        # 1 means price >= upper barrier, -1 means price <= lower barrier
 
+        y = [1 if num >= threshold else -1 if num <= -threshold else 0 for num in y]
+    else:
+        # signed labeling based on direction once vertical barrier hits
+
+        y = [1 if num > 0 else -1 if num < 0 else 0 for num in y]
+    
+    return y
+
+def rth_triple_barrier_method(data: pd.DataFrame, ):
+    '''
+    Triple barrier method, as proposed by MLDP
+
+    This functions differs from the one before in that it will iterate to check which threshold gets hit first
+    The above function just looks at where price is at the future index and disregards the path it took to get there
+    '''
