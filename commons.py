@@ -15,5 +15,3 @@ def import_sierra_data(data_path: str = None):
     df.columns = [col.strip() for col in df.columns]
 
     return df
-
-
