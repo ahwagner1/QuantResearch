@@ -1,7 +1,9 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+from commons import import_sierra_data
 
-df = pd.read_csv('/home/ahwagner/repos/QuantResearch/Data/250_VOL.txt')
-df.columns = [col.strip() for col in df.columns]
+path = 'Data/250_VOL.txt'
+df = import_sierra_data(path)
 
 print(df)
+
