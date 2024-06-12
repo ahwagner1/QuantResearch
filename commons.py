@@ -46,9 +46,11 @@ class MachineLearningLabeling:
     This class will hold useful functions for labeling data
     Use these when you want to work with classification tasks and not regression
 
-
+    TODO: 
+     - add the ability to have variable upper and lower thresholds for both functions
+     - create an event only triple barrier method that accepts the indecies of events instead of labeling every bar
     '''
-    #TODO: REWRITE TO ACCEPT VARIABLE UPPER AND LOWER THRESHOLD AMOUNTS INSTEAD OF FIXED 1:1
+
     @classmethod
     def rth_threshold_barrier_classifying(cls, data: pd.DataFrame, lookahead: int, threshold: float, zero_or_sign: str = 'zero', eod_timestamp: time = time(11,44,00)):
         '''
@@ -73,7 +75,7 @@ class MachineLearningLabeling:
         closing_prices = data['Last'].values
         timestamps = data.index
         num_samples = len(closing_prices)
-        y = np.empty(shape=(num_samples))
+        y = np.empty(shape = (num_samples))
 
         for i in range(num_samples):
             # bounds checking
@@ -107,10 +109,54 @@ class MachineLearningLabeling:
         return y
 
     @classmethod
-    def triple_barrier_method(cls, data: pd.DataFrame, multiplier: float, ):
+    def triple_barrier_method(cls, data: pd.DataFrame, lookahead: int, threshold: float, zero_or_sign: str = 'zero'):
         '''
-        Triple barrier labeling as proposed by MLDP
+        Triple barrier labeling, for every bar
 
         This functions differs from 'rth_threshold_barrier_classifying()' in that it will iterate to check which threshold gets hit first AND it will work on ETH and RTH
-        The above function just looks at where price is at the future index and disregards the path it took to get there
+        The 'rth_threshold_barrier_classifying() function just looks at where price is at the future index and disregards the path it took to get there
         '''
+
+        if (zero_or_sign not in ['zero', 'sign']):
+            raise ValueError('Invalid option, optios are [\'zero\', \'sign\']')
+
+        closing_prices = data['Last'].values
+        num_samples = len(closing_prices)
+        y = np.empty(shape = (num_samples))
+
+        for i in range(num_samples):
+            # computing barriers
+            current_price = closing_prices[i]
+            upper_barrier = current_price + threshold
+            lower_barrier = current_price + threshold
+            vertical_barrier_index = min(i + lookahead, num_samples - 1)
+
+            subset = data.iloc[i:vertical_barrier_index + 1]
+            max_price = subset['High'].max()
+            min_price = subset['Low'].min()
+
+            if max_price >= upper_barrier or min_price <= lower_barrier:
+                # upper or lower barrier is hit first
+                max_idx = subset['High'].loc[subset['High'] >= upper_barrier].index[0]
+                min_idx = subset['Low'].loc[subset['Low'] <= lower_barrier].index[0]
+
+                if max_idx < min_idx:
+                    y[i] = 1
+                elif min_idx < max_idx:
+                    y[i] = -1
+                else:
+                    # this else branch SHOULD NEVER be executed
+                    raise Exception('Somehow both barriers were hit in one bar')
+            else:
+                # vertical barrier gets hit
+                if zero_or_sign == 'zero':
+                    y[i] = 0
+                else:
+                    # give directional label
+                    label_map = {
+                        closing_prices[vertical_barrier_index] > current_price : 1,
+                        closing_prices[vertical_barrier_index] < current_price : -1,
+                    }
+                    y[i] = label_map.get(True, 0)
+        
+        return y
