@@ -22,7 +22,7 @@ class SierraChartsDataHelpers:
         df = pd.read_csv(data_path)
         df.columns = [col.strip() for col in df.columns]
 
-        df['TimeStamp'] = pd.to_datetime(df['Date'].astype(str) + ' ' + df['Time'].astype(str))
+        df['TimeStamp'] = pd.to_datetime(df['Date'].astype(str) + df['Time'].astype(str), format='mixed')#format='%Y/%m/%d %H:%M:%S.%f')
         df.set_index('TimeStamp', inplace = True)
         df.drop(['Date', 'Time'], axis = 1, inplace = True)
 
@@ -48,7 +48,7 @@ class MachineLearningLabeling:
 
     TODO: 
      - add the ability to have variable upper and lower thresholds for both functions
-     - create an event only triple barrier method that accepts the indecies of events instead of labeling every bar
+     - create an event only triple barrier method that accepts the indices of events instead of labeling every bar
     '''
 
     @classmethod
@@ -128,17 +128,20 @@ class MachineLearningLabeling:
             # computing barriers
             current_price = closing_prices[i]
             upper_barrier = current_price + threshold
-            lower_barrier = current_price + threshold
+            lower_barrier = current_price - threshold
             vertical_barrier_index = min(i + lookahead, num_samples - 1)
 
-            subset = data.iloc[i:vertical_barrier_index + 1]
+            subset = data.iloc[i+1:vertical_barrier_index+1] # setting to i + 1 to exclude the current price from the subset of data (e.g. if i == 5, we want the subset to be [6-10], so i+1:i+lookahead)
             max_price = subset['High'].max()
             min_price = subset['Low'].min()
+            #print(f'Current price: {current_price}\nUpper & Lower: {upper_barrier}, {lower_barrier}\nMax and Min: {max_price}, {min_price}')         
 
-            if max_price >= upper_barrier or min_price <= lower_barrier:
+            if max_price >= upper_barrier and min_price <= lower_barrier:
                 # upper or lower barrier is hit first
-                max_idx = subset['High'].loc[subset['High'] >= upper_barrier].index[0]
-                min_idx = subset['Low'].loc[subset['Low'] <= lower_barrier].index[0]
+
+                # fix this need to check one or the other, not both at the same time
+                max_idx = subset[subset['High'] >= upper_barrier].index[0]
+                min_idx = subset[subset['Low'] <= lower_barrier].index[0]
 
                 if max_idx < min_idx:
                     y[i] = 1
@@ -147,6 +150,10 @@ class MachineLearningLabeling:
                 else:
                     # this else branch SHOULD NEVER be executed
                     raise Exception('Somehow both barriers were hit in one bar')
+            elif max_price >= upper_barrier:
+                y[i] = 1
+            elif min_price <= lower_barrier:
+                y[i] = -1
             else:
                 # vertical barrier gets hit
                 if zero_or_sign == 'zero':
@@ -159,4 +166,36 @@ class MachineLearningLabeling:
                     }
                     y[i] = label_map.get(True, 0)
         
+        return y
+    
+    @classmethod
+    def triple_barrier_method_fast(cls, data: pd.DataFrame, lookahead: int, threshold: float, zero_or_sign: str = 'zero'):
+        if zero_or_sign not in ['zero', 'sign']:
+            raise ValueError('Invalid option, options are [\'zero\', \'sign\']')
+
+        closing_prices = data['Last'].values
+        num_samples = len(closing_prices)
+
+        # Compute barriers for all samples at once
+        upper_barriers = closing_prices + threshold
+        lower_barriers = closing_prices - threshold
+        vertical_barrier_indices = np.minimum(np.arange(num_samples) + lookahead, num_samples - 1)
+
+        # Compute max and min prices for each subset using rolling window
+        max_prices = data['High'].rolling(window=lookahead, min_periods=1).max().values
+        min_prices = data['Low'].rolling(window=lookahead, min_periods=1).min().values
+
+        # Determine which barrier gets hit first
+        upper_hit = max_prices >= upper_barriers
+        lower_hit = min_prices <= lower_barriers
+        vertical_hit = ~(upper_hit | lower_hit)
+
+        # Assign labels based on which barrier gets hit first
+        y = np.where(upper_hit, 1, np.where(lower_hit, -1, np.where(vertical_hit, 0, np.nan)))
+
+        if zero_or_sign == 'sign':
+            vertical_labels = np.where(closing_prices > closing_prices[vertical_barrier_indices], -1,
+                                np.where(closing_prices < closing_prices[vertical_barrier_indices], 1, 0))
+            y[vertical_hit] = vertical_labels[vertical_hit]
+
         return y
