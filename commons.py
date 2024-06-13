@@ -131,7 +131,7 @@ class MachineLearningLabeling:
             lower_barrier = current_price - threshold
             vertical_barrier_index = min(i + lookahead, num_samples - 1)
 
-            subset = data.iloc[i+1:vertical_barrier_index+1] # setting to i + 1 to exclude the current price from the subset of data (e.g. if i == 5, we want the subset to be [6-10], so i+1:i+lookahead)
+            subset = data.iloc[i+1:vertical_barrier_index+1] # setting to i + 1 to exclude the current price from the subset of data (e.g. if i == 5, we want the subset to be [6-10], so i+1:i+lookahead+1)
             max_price = subset['High'].max()
             min_price = subset['Low'].min()
             #print(f'Current price: {current_price}\nUpper & Lower: {upper_barrier}, {lower_barrier}\nMax and Min: {max_price}, {min_price}')         
