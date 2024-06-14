@@ -26,11 +26,14 @@ print(labels.shape)
 print(labels2.shape)
 all_true = True
 false_spots = []
+count = 0
 for index, element in enumerate(labels):
     if element != labels2[index]:
         false_spots.append(index)
         all_true = False
+        count += 1
 print(all_true)
+print(count)
 
 for idx in false_spots:
     print(f'My functiuon label: {labels[idx]}')

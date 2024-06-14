@@ -182,13 +182,13 @@ class MachineLearningLabeling:
         vertical_barrier_indices = np.minimum(np.arange(num_samples) + lookahead, num_samples - 1)
 
         # Compute max and min prices for each subset using rolling window
-        max_prices = data['High'].rolling(window=lookahead, min_periods=1).max().values
-        min_prices = data['Low'].rolling(window=lookahead, min_periods=1).min().values
+        max_prices = data['High'].shift(-1).rolling(window=lookahead, min_periods=1).max().values
+        min_prices = data['Low'].shift(-1).rolling(window=lookahead, min_periods=1).min().values
 
         # Determine which barrier gets hit first
         upper_hit = max_prices >= upper_barriers
         lower_hit = min_prices <= lower_barriers
-        vertical_hit = ~(upper_hit | lower_hit)
+        vertical_hit = np.logical_not(upper_hit | lower_hit)
 
         # Assign labels based on which barrier gets hit first
         y = np.where(upper_hit, 1, np.where(lower_hit, -1, np.where(vertical_hit, 0, np.nan)))
