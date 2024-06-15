@@ -199,3 +199,43 @@ class MachineLearningLabeling:
             y[vertical_hit] = vertical_labels[vertical_hit]
 
         return y
+    
+class SPXOptions:
+    '''
+    This class will grab a clean json of delayed SPX options data from the cboe website 
+    The class wil automatically filter for specific options codes as they are needed when intializing the class
+    Otherwise, the get_spx_options function can be called as a class method to grab the entire options dataset
+    '''
+    def __init__(self, options_code: str | list[str]):
+        self.option_codes = options_code
+        self.filtered_options = self.get_spx_options(self.option_codes)
+
+    @classmethod
+    def get_spx_options(cls, options_codes=None):
+        '''
+        This function makes a request to Cboe's rest url for delayed SPX options data
+        Can be setup on a timer to continually get SPX options
+        Do not abuse, they will ban your IP if you're not discrete
+
+        If this is called when options codes are provided, the function will return a json of only the requested options
+        '''
+        
+        import requests
+
+        url = 'https://cdn.cboe.com/api/global/delayed_quotes/options/_SPX.json'
+        response = requests.get(url)
+
+        if response.status_code == 200:
+            # success
+            options_data = response.json()
+
+            if options_codes:
+                # filter for the correct options
+                # TODO: Write the logic for parsing the json for desired option code, this might just have to be brute forced since the json from cboe seems somewhat random
+                return None
+            else:
+                return options_data
+        else:
+            print('Something Failed')
+        
+        return None
