@@ -1,13 +1,13 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-from commons import SierraChartsDataHelpers, MachineLearningLabeling, Options
+from commons import SierraChartsDataHelpers, MachineLearningLabeling, SPXOptions
 import time
 
 '''
 Testing file for new function to ensure they are accurate and performing as desired
 '''
 
-spx_chain = Options.get_spx_options()
+spx_chain = SPXOptions.get_spx_options()
 if spx_chain is None:
     print('Failed to get options data')
 
