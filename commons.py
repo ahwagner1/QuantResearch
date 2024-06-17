@@ -231,6 +231,7 @@ class SPXOptions:
         Do not abuse, they will ban your IP if you're not discrete
 
         If this is called when options codes are provided, the function will return a list of dictionaries of only the requested options
+        Otherwise it returns the fill json of options data (> 580k rows, memory heavy)
         '''
         
         import requests
