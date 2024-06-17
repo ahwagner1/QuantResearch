@@ -206,10 +206,22 @@ class SPXOptions:
     This class will grab a clean json of delayed SPX options data from the cboe website 
     The class wil automatically filter for specific options codes as they are needed when intializing the class
     Otherwise, the get_spx_options function can be called as a class method to grab the entire options dataset
+
+    options_codes : List of option code strings to search for in json
     '''
-    def __init__(self, options_code: str | list[str]):
+    def __init__(self, options_code: list[str]):
         self.option_codes = options_code
         self.filtered_options = self.get_spx_options(self.option_codes)
+    
+    @classmethod
+    def construct_options_codes(cls, dates: list[str], strikes: list[str], c_or_p: str = 'c' | 'p' | 'both'):
+        '''
+        This method will construct the desired options codes
+        I need the Date, Strike, and C/P
+        The option code format is as follows: SPX240621P03775000
+        'TICKER + YY + MM + DD + (C/P) + 0 + STRIKE + 000'
+        If the strike is < 4 digits, zero pad the strike. EX: 200 Strike = 0200
+        '''
 
     @classmethod
     def get_spx_options(cls, options_codes=None):
@@ -218,7 +230,7 @@ class SPXOptions:
         Can be setup on a timer to continually get SPX options
         Do not abuse, they will ban your IP if you're not discrete
 
-        If this is called when options codes are provided, the function will return a json of only the requested options
+        If this is called when options codes are provided, the function will return a list of dictionaries of only the requested options
         '''
         
         import requests
@@ -231,9 +243,23 @@ class SPXOptions:
             options_data = response.json()
 
             if options_codes:
-                # filter for the correct options
-                # TODO: Write the logic for parsing the json for desired option code, this might just have to be brute forced since the json from cboe seems somewhat random
-                return None
+                # filter for the correct options, breaking when all are found
+                num_codes = len(options_codes)
+                found = 0
+                filtered_options = []
+                
+                for option in options_data['data']['options']:
+                    # iterating through entire options data json
+                    # will break if all options are found
+                    option_code = option['option']
+                    if option_code in options_codes:
+                        found += 1
+                        filtered_options.append(option)
+                    
+                    if found == num_codes:
+                        break
+                
+                return filtered_options
             else:
                 return options_data
         else:
