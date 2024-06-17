@@ -1,6 +1,7 @@
 import pandas as pd
 from datetime import time
 import numpy as np
+import json
 
 '''
 Gonna use this for common functions that I'm too lazy to rewrite accross various projects
@@ -239,3 +240,13 @@ class SPXOptions:
             print('Something Failed')
         
         return None
+    
+    @classmethod
+    def save_to_file(cls, file_path: str, options_json: json) -> None:
+        '''
+        This function can be used to save the options json to a json file
+        Get the data using the get_spx_options and then pass that returned json to this function to save it to a local file
+        This seems sort of roundabout, will probably revise in the future 
+        '''
+        with open(file_path, 'w') as file:
+            json.dump(options_json, file, indent = 4)
