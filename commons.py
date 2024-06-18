@@ -214,14 +214,41 @@ class SPXOptions:
         self.filtered_options = self.get_spx_options(self.option_codes)
     
     @classmethod
-    def construct_options_codes(cls, dates: list[str], strikes: list[str], c_or_p: str = 'c' | 'p' | 'both'):
+    def construct_options_codes(cls, dates: list[str], strikes: list[str], c_or_p: str = 'both'):
         '''
-        This method will construct the desired options codes
+        This function will construct the desired options codes
         I need the Date, Strike, and C/P
         The option code format is as follows: SPX240621P03775000
         'TICKER + YY + MM + DD + (C/P) + 0 + STRIKE + 000'
         If the strike is < 4 digits, zero pad the strike. EX: 200 Strike = 0200
         '''
+
+    @classmethod
+    def get_options_codes_range(cls, spot: float, date: str):
+        '''
+        This function will grab the first 30 calls and puts around the given spot price
+        Since we are working with SPX options, round the spot to the nearest multiple of 5, and then iterate higher and lower in price by 5's
+        This is meant to be used when looking at 0DTE landscape, so ticker default right now is SPXW
+
+        spot: SPX spot price (float)
+        data: The date to use for constructing the option code. Follow this format -> 'YYMMDD'
+        '''
+
+        atm_price = 5 * round(spot / 5)
+        lower_price = atm_price - 150
+        upper_price = atm_price + 150
+
+        # range of strikes
+        strikes = np.arange(lower_price, upper_price + 5, 5)
+        puts = []
+        calls = []
+        for strike in strikes:
+            put = 'SPXW' + date + 'P' + '0' + str(strike) + '000'
+            call = 'SPXW' + date + 'P' + '0' + str(strike) + '000'
+            puts.append(put)
+            calls.append(call)
+        
+        return puts + calls     
 
     @classmethod
     def get_spx_options(cls, options_codes=None):
