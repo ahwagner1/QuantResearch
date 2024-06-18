@@ -2,17 +2,21 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from commons import SierraChartsDataHelpers, MachineLearningLabeling, SPXOptions
 import time
+import json
 
 '''
 Testing file for new function to ensure they are accurate and performing as desired
 '''
 
-spx_chain = SPXOptions.get_spx_options()
-if spx_chain is None:
-    print('Failed to get options data')
+#spx_chain = SPXOptions.get_spx_options()
+#if spx_chain is None:
+#    print('Failed to get options data')
 
-print(spx_chain) 
+#with open("data.json", "w") as file:
+#    json.dump(spx_chain, file, indent = 4)
 
+fn_call = SPXOptions.get_options_codes_range(5426.2, '240617')
+print(fn_call)
 
 '''path = 'Data/250_VOL.txt'
 df = SierraChartsDataHelpers.import_sierra_data(path)
