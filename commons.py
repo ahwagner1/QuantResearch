@@ -1,5 +1,6 @@
-import pandas as pd
 from datetime import time
+from typing import overload
+import pandas as pd
 import numpy as np
 import json
 
@@ -209,12 +210,12 @@ class SPXOptions:
 
     options_codes : List of option code strings to search for in json
     '''
-    def __init__(self, options_code: list[str]):
+    def __init__(self, options_code: list[str]) -> None:
         self.option_codes = options_code
         self.filtered_options = self.get_spx_options(self.option_codes)
 
     @classmethod
-    def get_options_codes_range(cls, spot: float, date: str):
+    def get_options_codes_range(cls, spot: float, date: str) -> list[str]:
         '''
         This function will grab the first 30 calls and puts around the given spot price
         Since we are working with SPX options, round the spot to the nearest multiple of 5, and then iterate higher and lower in price by 5's
@@ -238,7 +239,7 @@ class SPXOptions:
         return puts + calls     
 
     @classmethod
-    def _filter_options(cls, options_codes: list[str], options_data: json):
+    def _filter_options(cls, options_codes: list[str], options_data: json) -> list[dict]:
         '''
         Helper function to filter for specific options
 
