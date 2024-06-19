@@ -230,15 +230,41 @@ class SPXOptions:
 
         # range of strikes
         strikes = np.arange(lower_price, upper_price + 5, 5)
-        puts = []
-        calls = []
-        for strike in strikes:
-            put = 'SPXW' + date + 'P' + '0' + str(strike) + '000'
-            call = 'SPXW' + date + 'P' + '0' + str(strike) + '000'
-            puts.append(put)
-            calls.append(call)
-        
+
+        # constructing option codes        
+        puts = ['SPXW' + date + 'P' + '0' + str(strike) + '000' for strike in strikes]
+        calls = ['SPXW' + date + 'C' + '0' + str(strike) + '000' for strike in strikes]
+
         return puts + calls     
+
+    @classmethod
+    def _filter_options(cls, options_codes: list[str], options_data: json):
+        '''
+        Helper function to filter for specific options
+
+        Options codes: list of options codes to filter for
+        Options data: raw SPX options json
+        '''
+
+        # setting up these variable to break loop once all options are found
+        num_codes = len(options_codes)
+        found = 0
+
+        filtered_options = []
+        for option in options_data['data']['options']:
+            # iterating through entire options data json
+            # will break if all options are found
+            curr_option = option['option']
+            if curr_option in options_codes:
+                found += 1
+                filtered_options.append(option)
+            
+            if found == num_codes:
+                # bail out once all options are found
+                break
+        
+        return filtered_options
+
 
     @classmethod
     def get_spx_options(cls, options_codes=None):
@@ -261,23 +287,8 @@ class SPXOptions:
             options_data = response.json()
 
             if options_codes:
-                # filter for the correct options, breaking when all are found
-                num_codes = len(options_codes)
-                found = 0
-                filtered_options = []
-                
-                for option in options_data['data']['options']:
-                    # iterating through entire options data json
-                    # will break if all options are found
-                    option_code = option['option']
-                    if option_code in options_codes:
-                        found += 1
-                        filtered_options.append(option)
-                    
-                    if found == num_codes:
-                        break
-                
-                return filtered_options
+                # filtering for options using helper function
+                return SPXOptions._filter_options(options_codes, options_data)
             else:
                 return options_data
         else:
