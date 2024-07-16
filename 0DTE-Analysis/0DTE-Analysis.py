@@ -78,19 +78,22 @@ def create_and_save_plot(option_codes, net_gamma, net_delta, spot) -> None:
 def create_eod_chart(spot_prices, total_gammas, total_deltas):
     # create the EOD chart to see price v ganna/delta
 
-    fig = make_subplots(rows = 2, cols = 1, subplot_titles = ('Splot Price vs Total Gamma', 'Spot Price vs Total Delta'))
-
+    fig = make_subplots(rows = 2, cols = 1)
+    fig = make_subplots(rows=2, cols=1, specs=[[{"secondary_y": True}], [{"secondary_y": True}]])
+    
     # spot v gamma
     fig.add_trace(
         go.Scatter(x = list(range(len(spot_prices))), y = spot_prices, name = 'Spot Price', line = dict(color = 'blue')),
         row = 1,
         col = 1,
+        secondary_y = False,
     )
 
     fig.add_trace(
-        go.Scatter(x = list(range(len(total_gammas))), y = total_gammas, name = 'Summed Gamma', line = dict(color = 'blue')),
+        go.Scatter(x = list(range(len(total_gammas))), y = total_gammas, name = 'Summed Gamma', line = dict(color = 'red')),
         row = 1,
         col = 1,
+        secondary_y = True,
     )
 
     # spot v delta
@@ -98,22 +101,20 @@ def create_eod_chart(spot_prices, total_gammas, total_deltas):
         go.Scatter(x = list(range(len(spot_prices))), y = spot_prices, name = 'Spot Price', line = dict(color = 'blue')),
         row = 2,
         col = 1,
+        secondary_y = False,
     )
 
     fig.add_trace(
-        go.Scatter(x = list(range(len(total_deltas))), y = total_gammas, name = 'Summed Delta', line = dict(color = 'blue')),
+        go.Scatter(x = list(range(len(total_deltas))), y = total_deltas, name = 'Summed Delta', line = dict(color = 'red')),
         row = 2,
         col = 1,
+        secondary_y = True,
     )
 
     fig.update_layout(
         title_text = 'Spot Price vs Total Gamma and Delta',
         height = 1000,
         width = 1000,
-        yaxis=dict(title = 'Spot Price', side = 'left', showgrid = True),
-        yaxis2=dict(title='Total Gamma', side='right', overlaying='y', showgrid=True),
-        yaxis3=dict(title = 'Spot Price', side = 'left', showgrid = True),
-        yaxis4=dict(title='Total Delta', side='right', overlaying='y3', showgrid=True),
     )
 
     # create 'eod_charts' folder 
@@ -137,8 +138,8 @@ def get_data(spot):
     # calc interesting metrics
     # a bit ugly but I need to differentiate between calls and puts, the 10th letter in the option code is always 'C' or 'P'
     # https://doc.tradingflow.com/product-docs/concepts/delta-exposure-dex
-    gamma_calls = [option['open_interest'] * option['gamma'] * 100 * spot**2 * 0.01 for option in filtered_options if option['option'][10] == 'C']
-    gamma_puts = [option['open_interest'] * option['gamma'] * -100 * spot**2 * 0.01 for option in filtered_options if option['option'][10] == 'P']
+    gamma_calls = [option['open_interest'] * option['gamma'] * 100 * spot for option in filtered_options if option['option'][10] == 'C']
+    gamma_puts = [option['open_interest'] * option['gamma'] * -100 * spot for option in filtered_options if option['option'][10] == 'P']
 
     delta_calls = [option['open_interest'] * option['delta'] * 100 for option in filtered_options if option['option'][10] == 'C']
     delta_puts = [option['open_interest'] * option['delta'] * 100 for option in filtered_options if option['option'][10] == 'P']
@@ -155,7 +156,7 @@ def get_data(spot):
 def is_market_open():
     
     market_open = datetime_time(5, 30)
-    market_close = datetime_time(12, 0),
+    market_close = datetime_time(12, 0)
 
     akst = pytz.timezone('US/Alaska')
     current_time = datetime.now(akst).time()
@@ -182,7 +183,7 @@ def main():
 
         spx = yf.Ticker('^SPX')
         spx_prices = spx.history(interval = '5m')
-        spot = spx_prices['Close'][-3] # need to delay 15 mins since cboe only provides delayed quotes
+        spot = spx_prices['Close'].iloc[-3] # need to delay 15 mins since cboe only provides delayed quotes
 
         strikes, net_gamma, net_delta, total_gamma, total_delta = get_data(spot)
 

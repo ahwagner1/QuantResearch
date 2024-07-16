@@ -3,6 +3,7 @@ from typing import overload
 import pandas as pd
 import numpy as np
 import json
+from financetoolkit import Toolkit
 
 '''
 Gonna use this for common functions that I'm too lazy to rewrite accross various projects
@@ -306,3 +307,34 @@ class SPXOptions:
         '''
         with open(file_path, 'w') as file:
             json.dump(options_json, file, indent = 4)
+
+
+class FinanceToolkitHelpers():
+
+    '''
+    Helper functions for working with FinanceToolkit API
+    '''
+
+    def __init__(self, tickers: list[str], column_filter: list[str] | None, api_key: str | None, start_date: str | None, end_date: str | None):
+        self.tickers = tickers
+        self.column_filter = column_filter
+        self.api_key = api_key
+        self.start = start_date
+        self.end = end_date
+    
+    def get_data(self) -> pd.DataFrame:
+        '''
+        Grabs daily historical data from api
+        '''
+
+        tk = Toolkit(
+            tickers=self.tickers, 
+            api_key=self.api_key, 
+            start_date=self.start, 
+            end_date=self.end
+        )
+
+        hist_data = tk.get_historical_data()
+        filtered_data = hist_data[self.column_filter] if self.column_filter is not None else hist_data
+
+        return hist_data

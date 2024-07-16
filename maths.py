@@ -5,11 +5,12 @@ Gonna use this to write math functions, either for learning purposes or somethin
 """
 
 class PCA():
-"""
-Assumes that the data fed into this class is an array of asset returns in a numpy array
-May need to change that at some point depending on my datasource
-most of this code was written by following someone elses implementation -> https://bagheri365.github.io/blog/Principal-Component-Analysis-from-Scratch/
-"""
+    """
+    Assumes that the data fed into this class is an array of asset returns in a numpy array
+    May need to change that at some point depending on my datasource
+    most of this code was written by following someone elses implementation -> https://bagheri365.github.io/blog/Principal-Component-Analysis-from-Scratch/
+    """
+    
     def __init__(self, data, n_components):
         self.data = data
         self.n_components = n_components
@@ -46,8 +47,4 @@ most of this code was written by following someone elses implementation -> https
         """
         if self.components is None:
             raise ValueError("PCA has not been fitted. Call fit() before transform()")
-        return np.dot(X - np.mean(self.data, axis=0), self.components.T)
-
-    
-
-  
+        return np.dot(X - np.mean(self.data, axis=0), self.components.T) 
