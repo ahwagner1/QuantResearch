@@ -315,12 +315,13 @@ class FinanceToolkitHelpers():
     Helper functions for working with FinanceToolkit API
     '''
 
-    def __init__(self, tickers: list[str], column_filter: list[str] | None, api_key: str | None, start_date: str | None, end_date: str | None):
+    def __init__(self, tickers: list[str], column_filter: list[str] | None, api_key: str | None, start_date: str | None, end_date: str | None, period: str = 'daily'):
         self.tickers = tickers
         self.column_filter = column_filter
         self.api_key = api_key
         self.start = start_date
         self.end = end_date
+        self.period = period
     
     def get_data(self) -> pd.DataFrame:
         '''
@@ -334,7 +335,9 @@ class FinanceToolkitHelpers():
             end_date=self.end
         )
 
-        hist_data = tk.get_historical_data()
-        filtered_data = hist_data[self.column_filter] if self.column_filter is not None else hist_data
+        hist_data = tk.get_historical_data(self.period)
+        
+        if self.column_filter is not None:
+            hist_data = hist_data[self.column_filter]
 
         return hist_data
