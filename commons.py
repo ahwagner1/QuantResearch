@@ -332,7 +332,8 @@ class FinanceToolkitHelpers():
             tickers=self.tickers, 
             api_key=self.api_key, 
             start_date=self.start, 
-            end_date=self.end
+            end_date=self.end,
+            benchmark_ticker=None
         )
 
         hist_data = tk.get_historical_data(self.period)
