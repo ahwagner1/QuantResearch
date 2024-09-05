@@ -4,6 +4,8 @@ import pandas as pd
 import numpy as np
 import json
 from financetoolkit import Toolkit
+import os
+import pickle
 
 '''
 Gonna use this for common functions that I'm too lazy to rewrite accross various projects
@@ -342,3 +344,33 @@ class FinanceToolkitHelpers():
             hist_data = hist_data[self.column_filter]
 
         return hist_data
+
+
+class DataManagement():
+
+    @classmethod
+    def save_data(cls, folder_path: str, file_name: str, data) -> None:
+        '''
+        This function pickles the given data for more effiecient workflow working with large datasets
+
+        folder_path: the datapath to save the data too, if it doesn't exist this function will create the location
+        file_name: the name of the file to save the data as
+        data: any form of data to save
+        '''
+
+        if not os.path.isdir(folder_path):
+            # folder path does not exist
+            os.makedirs(folder_path)
+        
+        path = os.path.join(folder_path, file_name)
+        with open(path, 'wb') as file:
+            pickle.dump(data, file)
+    
+    @classmethod
+    def load_data(cls, path):
+        '''
+        Returns unpickled data
+        '''
+        
+        with open(path, 'rb') as file:
+            return pickle.load(file)
