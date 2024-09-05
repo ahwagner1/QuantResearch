@@ -64,10 +64,13 @@ class SimpleStatArb():
         print(f'Sharpe: {sharpe:.2f}')
         print(f'Daily Turnover: {daily_turnover * 100:.2f}%')
 
-
-tickers = ['JPM', 'BAC', 'C', 'MS', 'GS']
-start_date = '2010-01-01'
-cols = ['Close', 'Adj Close', 'Volume', 'Return']
+# this one looks decent from a sharpe perspective, need to look at accurate tunrover though
+#tickers = ['GM', 'F']
+#tickers = ['PG', 'CL', 'KMB', 'EL']
+#tickers = ['NVDA', 'AMD']
+tickers = ['ARM', 'MRVL', 'NVDA', 'AMD']
+start_date = '2020-01-01'
+cols = ['Adj Close', 'Volume', 'Return']
 
 tk = commons.FinanceToolkitHelpers(
     tickers=tickers,
