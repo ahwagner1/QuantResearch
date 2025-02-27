@@ -1,16 +1,23 @@
 """
 This file contains all of the functions for connecting to the database and all that
 """
-import os
 import psycopg2
-from dotenv import load_dotenv
 
-load_dotenv('./keys_and_secrets.py')
-SQL_USERNAME = os.getenv('sql_username')
-SQL_PASSWORD = os.getenv('sql_password')
-SQL_DB_NAME  = os.get_env('sql_name')
 
 class DatabaseUtility:
+
+    @classmethod
+    def database_connect(cls, db_name, user, password, host='localhost', port='5432'):
+        """
+        This function returns a connection to the desired database
+        """
+        return psycopg2.connect(
+            dbname=db_name,
+            user=user,
+            password=password,
+            host=host,
+            port=port,
+        )
 
     @classmethod
     def create_db(cls, db_name, user, password, host='localhost', port='5432') -> None:
@@ -45,7 +52,7 @@ class DatabaseUtility:
             conn.close()
     
     @classmethod
-    def create_tables(db_name, user, password, host='localhost', port='5432'):
+    def create_tables(cls, db_name, user, password, host='localhost', port='5432') -> None:
         """
         This function creates tables for storing commodity data that we parsed from .scid files provided by SC
         """
@@ -112,3 +119,10 @@ class DatabaseUtility:
         finally:
             cur.close()
             conn.close()
+    
+    @classmethod
+    def load_data_to_db(cls, conn, df, table_name):
+        """
+        This function inserts data into the desired table and then updates the appropirate json file settings
+        """
+        pass
