@@ -2,7 +2,7 @@ Just setting up some simple code for connecting sierra charts to a local python 
 
 
 - Why do this? 
-- - Well I'm cheap and don't want to pay for another data API when I already pay for Sierra charts data. 
+- - Well I'm cheap and don't want to pay for another data API when I already pay for data through Sierra Charts. 
 - Why not use DTC? 
 - - DTC doesn't let you stream CME group data so we have to be creative. I could setup something to parse scid files but I don't need tick-by-tick data so I decided to set up a simple TCP network to send data.   
 
